@@ -12,7 +12,7 @@ pipeline {
         stage('Clone Code') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/sampath-id/docker-hub.git',
+                    url: 'https://github.com/sampath-id/ecs-demo.git',
                     credentialsId: 'sampath-id'
             }
         }
@@ -26,7 +26,7 @@ pipeline {
                             ${scannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey=my-app \
                             -Dsonar.sources=. \
-                            -Dsonar.host.url=http://13.200.200.62:9000 \
+                            -Dsonar.host.url=http://52.66.229.90:9000 \
                             -Dsonar.login=${SONAR_AUTH_TOKEN}
                         """
                     }
