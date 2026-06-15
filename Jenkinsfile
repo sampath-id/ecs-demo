@@ -4,7 +4,7 @@ pipeline {
         AWS_ACCOUNT_ID = "236726878226"
         AWS_REGION     = "ap-south-1"        // ✅ fixed region
         ECR_REPO       = "app"
-        LOCAL_IMAGE    = "my-app:latest"
+        LOCAL_IMAGE    = "app"
         ECR_IMAGE      = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest"
     }
     stages {
