@@ -95,8 +95,8 @@ pipeline {
         ]]) {
             sh '''
                 aws ecs update-service \
-                --cluster YOUR_ECS_CLUSTER_NAME \
-                --service YOUR_ECS_SERVICE_NAME \
+                --cluster ECS-CLUSTER \
+                --service app-service \
                 --force-new-deployment \
                 --region $AWS_REGION
             '''
