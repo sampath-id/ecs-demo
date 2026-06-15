@@ -84,7 +84,25 @@ pipeline {
                 }
             }
         }
+ 
+       stage('Deploy to ECS') {
+    steps {
+        withCredentials([[
+            $class           : 'AmazonWebServicesCredentialsBinding',
+            credentialsId    : 'aws-creds',
+            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+        ]]) {
+            sh '''
+                aws ecs update-service \
+                --cluster YOUR_ECS_CLUSTER_NAME \
+                --service YOUR_ECS_SERVICE_NAME \
+                --force-new-deployment \
+                --region $AWS_REGION
+            '''
+        }
     }
+}    
 
     post {
         success {
