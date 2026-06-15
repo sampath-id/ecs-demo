@@ -1,12 +1,14 @@
 pipeline {
     agent any
+
     environment {
         AWS_ACCOUNT_ID = "236726878226"
-        AWS_REGION     = "ap-south-1"        // ✅ fixed region
+        AWS_REGION     = "ap-south-1"
         ECR_REPO       = "app"
         LOCAL_IMAGE    = "app"
         ECR_IMAGE      = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest"
     }
+
     stages {
 
         stage('Clone Code') {
@@ -21,13 +23,14 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     script {
-                        def scannerHome = tool 'sonar-scanner'  // ✅ fixed
+                        def scannerHome = tool 'sonar-scanner'
+
                         sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=my-app \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=http://13.235.216.241:9000 \
-                            -Dsonar.login=${SONAR_AUTH_TOKEN}
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=my-app \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://13.235.216.241:9000 \
+                        -Dsonar.login=${SONAR_AUTH_TOKEN}
                         """
                     }
                 }
@@ -36,7 +39,7 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {  // ✅ added timeout
+                timeout(time: 2, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: false
                 }
             }
@@ -51,8 +54,8 @@ pipeline {
         stage('Login to Amazon ECR') {
             steps {
                 withCredentials([[
-                    $class           : 'AmazonWebServicesCredentialsBinding',
-                    credentialsId    : 'aws-creds',
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds',
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
@@ -75,8 +78,8 @@ pipeline {
         stage('Push Image to ECR') {
             steps {
                 withCredentials([[
-                    $class           : 'AmazonWebServicesCredentialsBinding',
-                    credentialsId    : 'aws-creds',
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds',
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
@@ -84,32 +87,36 @@ pipeline {
                 }
             }
         }
- 
-       stage('Deploy to ECS') {
-    steps {
-        withCredentials([[
-            $class           : 'AmazonWebServicesCredentialsBinding',
-            credentialsId    : 'aws-creds',
-            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-        ]]) {
-            sh '''
-                aws ecs update-service \
-                --cluster ECS-CLUSTER \
-                --service app-service \
-                --force-new-deployment \
-                --region $AWS_REGION
-            '''
+
+        stage('Deploy to ECS') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    sh '''
+                        aws ecs update-service \
+                        --cluster ECS-CLUSTER \
+                        --service app-service \
+                        --force-new-deployment \
+                        --region $AWS_REGION
+                    '''
+                }
+            }
         }
-    }
-}    
+
+    } // End of stages
 
     post {
         success {
-            echo 'Docker image pushed to Amazon ECR successfully!'
+            echo 'Docker image pushed to Amazon ECR and ECS deployed successfully!'
         }
+
         failure {
             echo 'Pipeline failed!'
         }
     }
-}
+
+} // End of pipeline
